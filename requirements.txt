@@ -1,0 +1,7 @@
+certifi==2023.11.17
+charset-normalizer==3.3.2
+idna==3.6
+./pycurl_win64/pycurl-7.45.1-cp310-cp310-win_amd64.whl
+requests==2.31.0
+urllib3==2.1.0
+vk-api==11.9.9
