@@ -2,6 +2,7 @@
 
 ## What does it do?
 A simple script that calls VK API and uploads to a conversation a picture (NYI) and greetings as a VK community bot.
+Board game themed.
 
 ## Usage
 
@@ -28,3 +29,29 @@ There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl
 
 ### API key (WIP)
 Supplementing a *(community API)* key with configured photo and message priviledges through console arguments is NYI, for now just edit the "key" attribute and conversation ID and PEER directly in [.py](bgfridaybot.py) file.
+
+## Currently supported features
+- Hardcoded: 
+  - API key and IDs
+  - List of hello prompts
+  - List of "Board games of the day"
+- Sending random photos from a specified folder function (if uncommented)
+
+## Planned features
+- Console arguments
+  - API key(s)
+  - Community ID
+  - Conversation ID
+  - Conversation Peer ID
+  - Language
+- External database of hello prompts
+- [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API#) integration
+  - Automatic "Board game of the day" acquiring
+- Creating configurable polls in stub community
+- Stable diffusion [CPU (OpenVINO)](https://github.com/bes-dev/stable_diffusion.openvino) and [GPU (streamline)](https://github.com/CompVis/stable-diffusion) integration 
+  - Picture generation from "Board game of the day" prompt
+  - Random board game concepts?
+- Multiple language translation (EN-RU primarily)
+- Various chat integrations
+  - Answers to a keyword
+  - Board game search engine?
