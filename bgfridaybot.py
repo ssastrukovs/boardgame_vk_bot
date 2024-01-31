@@ -11,14 +11,21 @@ import json
 # image file path getting
 import os
 
-key = 'INSERTKEYHERE'
+# console arguments
+import argparse
 
-dice_n_magic_id = 1337
+def parse_args():
+    # Returns arguments as a dictionary
+    
+    parser = argparse.ArgumentParser(description="\nBoard game vk bot", formatter_class=lambda prog: argparse.HelpFormatter(prog,max_help_position=72))
 
-felix_id = 1337
-felix_peer = 1337
+    parser.add_argument("-k", "--key",          default="",type = str, required=True, help="API key")
+    parser.add_argument("-gid", "--group-id",   default=0, type = int, required=True, help="ID of the community that bot belongs to")
+    parser.add_argument("-cid", "--chat-id",    default=0, type = int, required=True, help="ID of the chat that bot will be sending messages to")
+    parser.add_argument("-cpeer", "--chat-peer",default=0, type = int, required=True, help="PEER of the chat that bot will be sending messages to")
+    parser.add_argument("-ph", "--photo-dir",   default=".",type = str, help="Directory where random photos that can be posted will be stored")
 
-photo_root = "INSERTPATHHERE"
+    return parser.parse_args()
 
 def check_time(time_struct, hr, min):
     """
@@ -661,6 +668,14 @@ facts = [
     ]
 
 def main():
+    args = parse_args();
+    print(args)
+    
+    key = args.key
+    chat_id = args.chat_id
+    chat_peer = args.chat_peer
+    photo_root = args.photo_dir
+        
     vk_session = vk_api.VkApi(token=key)
     vk = vk_session.get_api()
     
@@ -707,9 +722,9 @@ def main():
                     id = random.randint(1, 1000000000)
                     attachment = msg_entries[message]
                     if(attachment == ""):
-                        vk.messages.send(chat_id=felix_id, peer_id=felix_peer, message=message, random_id=id)
+                        vk.messages.send(chat_id=chat_id, peer_id=chat_peer, message=message, random_id=id)
                     else:
-                        vk.messages.send(chat_id=felix_id, peer_id=felix_peer, message=message, attachment=attachment, random_id=id)
+                        vk.messages.send(chat_id=chat_id, peer_id=chat_peer, message=message, attachment=attachment, random_id=id)
             
         time_prev = time_now
         # Поспать 0.2 секунды
