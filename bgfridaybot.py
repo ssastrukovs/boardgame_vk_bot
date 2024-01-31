@@ -711,8 +711,9 @@ def main():
                 msg_entries[f"Настолка дня: {random.choice(recomendations_ru)}"] = ""
             if(check_evening(time_now)):
                 print("вечер")
-                # Послать фотку
-                # msg_entries["Иллюстрация дня:"] = get_photo_attachment(vk, get_photo_path(photo_root))
+                # Send a photo if photo_root is not working directory
+                if(photo_root != "."):
+                    msg_entries["Иллюстрация дня:"] = get_photo_attachment(vk, get_photo_path(photo_root))
             if(check_goodnight(time_now)):
                 print("ночи")
                 msg_entries[f"Спокойной ночи{random.choice(hellos)}"] = ""
