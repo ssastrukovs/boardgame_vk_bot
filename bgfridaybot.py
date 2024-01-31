@@ -21,23 +21,132 @@ felix_peer = 1337
 photo_root = "INSERTPATHHERE"
 
 def check_time(time_struct, hr, min):
+    """
+    Checks if a given time struct is at a specific hour and minute.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+    hr : int
+        The hour to check for.
+    min : int
+        The minute to check for.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is at the specified hour and minute: true or false.
+    """
     return (time_struct.tm_hour == hr and time_struct.tm_min == min and time_struct.tm_sec == 0)
 def check_wd(time_struct, wd):
+    """
+    Checks if a given time struct is on a specific weekday.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+    wd : int
+        The weekday to check for. Monday is 0 and Sunday is 6.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is on the specified weekday: true or false.
+    """
     return (time_struct.tm_wday == wd)
 def check_morning(time_struct):
+    """
+    Checks if a given time struct is in the morning.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is in the afternoon: true or false.
+    """
     return check_time(time_struct, 8, 0)
 def check_afternoon(time_struct):
+    """
+    Checks if a given time struct is in the afternoon.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is in the afternoon: true or false.
+    """
     return check_time(time_struct, 12, 30)
 def check_evening(time_struct):
+    """
+    Checks if a given time struct is in the evening.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is in the evening: true or false.
+    """
     return check_time(time_struct, 17, 0)
 def check_friday_poll(time_struct):
+    """
+    Checks if a given time struct is on a Friday morning.
+    
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+
+    Returns
+    -------
+    bool
+        Whether the time struct is on a Friday and at 8:10am: true or false.
+    """
     return (check_wd(time_struct, 4) and check_time(time_struct, 8, 10))
 def check_goodnight(time_struct):
+    """
+    Checks if a given time struct matches night time.
+
+    Parameters
+    ----------
+    time_struct : time.struct_time
+        The time struct to check from time library.
+
+    Returns
+    -------
+    bool
+        Whether the time struct matches night time: true or false.
+    """
     return check_time(time_struct, 22, 0)
 
 def get_photo_path(photo_root):
-    # Полный путь к фотографии, получить рандомно
-    photo_list = os.listdir(photo_root)    
+    """
+    Returns a random photo path from the given photo directory.
+
+    Parameters
+    ----------
+    photo_root : str
+        The root directory of the photos.
+
+    Returns
+    -------
+    str
+        A random photo path from the given photo root directory.
+    """
+    photo_list = os.listdir(photo_root)
     photo_path = f"{photo_root}/{random.choice(photo_list)}"
     print(photo_path) 
     return photo_path
@@ -49,7 +158,6 @@ def get_photo_attachment(vk, photo_path):
     :param photo_path: path to the photo to upload
     :return: attachment string for the uploaded photo
     """
-    # Загрузить фотографию в скрытый альбом ВК
     
     hidden_album = vk.photos.getMessagesUploadServer()
     print(hidden_album["upload_url"])
