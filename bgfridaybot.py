@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument("-ph", "--photo-dir",   default=".",type = str, help="Directory where random photos that can be posted will be stored")
     parser.add_argument("-hp", "--hello-prompts",         default="db/hellos.csv",type = str, help=".csv file with hello prompts path")
     parser.add_argument("-bgp", "--board-game-prompts",   default="db/games.csv", type = str, help=".csv file with board games list path")
+    parser.add_argument("-lang", "--language",   default="ru", type = str, choices=["en","ru"] ,help="Language of choice. Currently 'ru' and 'en' are supported")
 
     return parser.parse_args()
 
@@ -217,15 +218,21 @@ def main():
     if(args.hello_prompts != ""):
         hellos =             np.genfromtxt(args.hello_prompts, delimiter=",", dtype=str, encoding='utf-8')
     if(args.board_game_prompts != ""):
-        recomendations, recomendations_ru = np.genfromtxt(args.board_game_prompts, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
+        recomendations_en, recomendations_ru = np.genfromtxt(args.board_game_prompts, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
         
     vk_session = vk_api.VkApi(token=key)
     vk = vk_session.get_api()
     
     print(f"hellos length: {len(hellos)}")
-    print(f"recomendations length: {len(recomendations)}")
+    print(f"recomendations length: {len(recomendations_en)}")
     print(f"recomendations_ru length: {len(recomendations_ru)}")
     print(f"photos length: {len(os.listdir(photo_root))}")
+    
+    # set recommendations language
+    if(args.language == "ru"):
+        recomendations = recomendations_ru
+    if(args.language == "en"):
+        recomendations = recomendations_en
     
     time_now = time.localtime()
     time_prev = time_now
@@ -250,7 +257,7 @@ def main():
                 msg_entries["А опрос создавать кто-то будет?"] = ""
             if(check_afternoon(time_now)):
                 print("полдень")
-                msg_entries[f"Настолка дня: {random.choice(recomendations_ru)}"] = ""
+                msg_entries[f"Настолка дня: {random.choice(recomendations)}"] = ""
             if(check_evening(time_now)):
                 print("вечер")
                 # Send a photo if photo_root is not working directory
