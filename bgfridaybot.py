@@ -251,7 +251,7 @@ def main():
             # Проверить всякие условия
             if(check_morning(time_now)):
                 print("утро")
-                msg_entries[f"Доброе утро{random.choice(hellos)}"] = ""
+                msg_entries[f"Доброе утро, {random.choice(hellos)}"] = ""
             if(check_friday_poll(time_now)):
                 print("опрос")
                 msg_entries["А опрос создавать кто-то будет?"] = ""
