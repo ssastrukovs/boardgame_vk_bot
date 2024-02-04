@@ -27,8 +27,8 @@ def parse_args():
     parser.add_argument("-cid", "--chat-id",    default=0, type = int, required=True, help="ID of the chat that bot will be sending messages to")
     parser.add_argument("-cpeer", "--chat-peer",default=0, type = int, required=True, help="PEER of the chat that bot will be sending messages to")
     parser.add_argument("-ph", "--photo-dir",   default=".",type = str, help="Directory where random photos that can be posted will be stored")
-    parser.add_argument("-hp", "--hello-prompts",         default="db/hellos.csv",type = str, help=".csv file with hello prompts path")
-    parser.add_argument("-bgp", "--board-game-prompts",   default="db/games.csv", type = str, help=".csv file with board games list path")
+    parser.add_argument("-hp", "--hello-prompts",         default="db/hellos.csv",type = str, help=".csv file with hello prompts path, \"db/hellos.csv\" by default")
+    parser.add_argument("-bgp", "--board-game-prompts",   default="db/games.csv", type = str, help=".csv file with board games list path, \"db/games.csv\" by default")
     parser.add_argument("-lang", "--language",   default="ru", type = str, choices=["en","ru"] ,help="Language of choice. Currently 'ru' and 'en' are supported")
 
     return parser.parse_args()
@@ -251,7 +251,7 @@ def main():
             # Проверить всякие условия
             if(check_morning(time_now)):
                 print("утро")
-                msg_entries[f"Доброе утро{random.choice(hellos)}"] = ""
+                msg_entries[f"Доброе утро, {random.choice(hellos)}"] = ""
             if(check_friday_poll(time_now)):
                 print("опрос")
                 msg_entries["А опрос создавать кто-то будет?"] = ""
