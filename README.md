@@ -52,9 +52,6 @@ to download a pre-built wheel.
 
 There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl_win64/pycurl-7.45.1-cp310-cp310-win_amd64.whl).
 
-### API key (WIP)
-Supplementing a *(community API)* key with configured photo and message priviledges through console arguments is NYI, for now just edit the "key" attribute and conversation ID and PEER directly in [.py](bgfridaybot.py) file.
-
 ## Currently supported features
 - Sending prompts to a chat:
   - "Good morning, ..."
