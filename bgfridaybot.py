@@ -31,6 +31,9 @@ def parse_args():
     parser.add_argument("-bgp", "--board-game-prompts",   default="db/games.csv", type = str, help=".csv file with board games list path, \"db/games.csv\" by default")
     parser.add_argument("-lang", "--language",   default="ru", type = str, choices=["en","ru"] ,help="Language of choice. Currently 'ru' and 'en' are supported")
 
+    parser.add_argument("-ks", "--key-stub",   default="", type = str, help="Stub API key, for your admin account. Needed for polls posting. Go to https://vkhost.github.io/ to get it")
+    parser.add_argument("-pdb", "--poll-database",   default="db/poll.csv", type = str, help="2d matrix for a poll, db/poll.csv by default. First entry is a name, second entry is list of rows, separated by spaces. NOTE! Only one row (poll) is supported for now")
+
     return parser.parse_args()
 
 def check_time(time_struct, hr, min):
@@ -205,23 +208,56 @@ def get_photo_attachment(vk, photo_path):
     
     return attachment
 
+def get_poll_attachment(vk_stub, group, poll_name, poll_matrix):
+    """
+    Creates a poll using the VK API stub (authenticated by your own account auth token, 
+    get it on https://vkhost.github.io/) and returns an attachment string.
+
+    :param vk_stub: VK API object
+    :param group: ID of the group where the poll will be created
+    :param poll_name: name of the poll
+    :param poll_matrix: list of poll options, where each option is a string
+    :return: attachment string for the created poll
+    """
+    owner_id = -int(group)
+    
+    poll = vk_stub.polls.create(owner_id=owner_id, question=poll_name, is_anonymous=0, add_answers=json.dumps(poll_matrix))
+    print(poll)
+    
+    poll_id = poll["id"]
+    
+    attachment = f"poll{owner_id}_{poll_id}"
+    return attachment
+
 def main():
     args = parse_args();
     print(args)
     
     key = args.key
     chat_id = args.chat_id
+    group_id = args.group_id
     chat_peer = args.chat_peer
     photo_root = args.photo_dir
+    
+    key_stub = args.key_stub
     
     # get databases
     if(args.hello_prompts != ""):
         hellos =             np.genfromtxt(args.hello_prompts, delimiter=",", dtype=str, encoding='utf-8')
     if(args.board_game_prompts != ""):
         recomendations_en, recomendations_ru = np.genfromtxt(args.board_game_prompts, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
-        
+    if(args.poll_database != ""):
+        poll_name, poll_matrix = np.genfromtxt(args.poll_database, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
+        poll_matrix = poll_matrix.split()
+
+    # Login to group bot account for messages.send
     vk_session = vk_api.VkApi(token=key)
     vk = vk_session.get_api()
+    
+    # Login to a personal account for polls.create, etc.
+    # To get that token - go to https://vkhost.github.io/ and specify "Wall" on a personal account in "Settings" 
+    stub_session = vk_api.VkApi(token=key_stub)
+    vk_stub = stub_session.get_api()
     
     print(f"hellos length: {len(hellos)}")
     print(f"recomendations length: {len(recomendations_en)}")
@@ -253,8 +289,9 @@ def main():
                 print("утро")
                 msg_entries[f"Доброе утро, {random.choice(hellos)}"] = ""
             if(check_friday_poll(time_now)):
-                print("опрос")
-                msg_entries["А опрос создавать кто-то будет?"] = ""
+                if(key_stub != ""):
+                    print("опрос")
+                    msg_entries["Отмечаемся"] = get_poll_attachment(vk_stub, group_id, poll_name, poll_matrix)
             if(check_afternoon(time_now)):
                 print("полдень")
                 msg_entries[f"Настолка дня: {random.choice(recomendations)}"] = ""
