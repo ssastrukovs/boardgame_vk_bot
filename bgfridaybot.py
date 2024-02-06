@@ -265,7 +265,7 @@ def main():
                     msg_entries["Иллюстрация дня:"] = get_photo_attachment(vk, get_photo_path(photo_root))
             if(check_goodnight(time_now)):
                 print("ночи")
-                msg_entries[f"Спокойной ночи{random.choice(hellos)}"] = ""
+                msg_entries[f"Спокойной ночи, {random.choice(hellos)}"] = ""
             # Послать сообщения, если они есть
             if (len(msg_entries) > 0):
                 for message in msg_entries:
