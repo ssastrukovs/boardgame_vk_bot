@@ -36,9 +36,15 @@ PHOTO_DIR] [-hp HELLO_PROMPTS] [-bgp BOARD_GAME_PROMPTS] [-lang {en,ru}]
   -hp HELLO_PROMPTS, --hello-prompts HELLO_PROMPTS                  .csv file with hello prompts path, "db/hellos.csv" by default
   -bgp BOARD_GAME_PROMPTS, --board-game-prompts BOARD_GAME_PROMPTS  .csv file with board games list path, "db/games.csv" by default
   -lang {en,ru}, --language {en,ru}                                 Language of choice. Currently 'ru' and 'en' are supported
+  -ks KEY_STUB, --key-stub KEY_STUB                                 Stub API key, for your admin account. Needed for polls posting. Go to https://vkhost.github.io/ to get it
+  -pdb POLL_DATABASE, --poll-database POLL_DATABASE                 2d matrix for a poll, db/poll.csv by default. First entry is a name, second entry is list of rows, separated by spaces. NOTE! Only one row (poll) is supported for now
 ```
 
 If creating custom .csv databases, please keep them similar to provided ones
+### Polls
+To enable polls functionality, you need to be an administrator of bot's community and a key from https://vkhost.github.io/, bound to your personal account.  
+Supply that key as -ks, and every Friday morning you'll have a board game query in your VK chat!
+
 
 ### Pipeline
 Bot wil run until it's interrupted or closed
@@ -59,11 +65,11 @@ There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl
     - "ru" and "en" languages
   - "Good night, ..."
 - Sending random photos from a specified folder, if that folder path is specified
+- Creating configurable polls as a bot's community administrator
 
 ## Planned features
 - [BoardGameGeek XML API](https://boardgamegeek.com/wiki/page/BGG_XML_API#) integration
   - Automatic "Board game of the day" acquiring
-- Creating configurable polls in stub community
 - Stable diffusion [CPU (OpenVINO)](https://github.com/bes-dev/stable_diffusion.openvino) and [GPU (streamline)](https://github.com/CompVis/stable-diffusion) integration 
   - Picture generation from "Board game of the day" prompt
   - Random board game concepts?
@@ -71,3 +77,4 @@ There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl
 - Various chat integrations
   - Answers to a keyword
   - Board game search engine?
+- Fix pycurl cross-platform behaviour (run in docker?)
