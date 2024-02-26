@@ -241,12 +241,15 @@ def main():
     
     key_stub = args.key_stub
     
+    recomendations_en = []
+    recomendations_ru = []
+    
     # get databases
-    if(args.hello_prompts != ""):
+    if(args.hello_prompts != "."):
         hellos =             np.genfromtxt(args.hello_prompts, delimiter=",", dtype=str, encoding='utf-8')
-    if(args.board_game_prompts != ""):
+    if(args.board_game_prompts != "."):
         recomendations_en, recomendations_ru = np.genfromtxt(args.board_game_prompts, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
-    if(args.poll_database != ""):
+    if(args.poll_database != "."):
         poll_name, poll_matrix = np.genfromtxt(args.poll_database, delimiter=",", dtype=str, unpack=True, encoding='utf-8')
         poll_matrix = poll_matrix.split()
 
@@ -294,7 +297,8 @@ def main():
                     msg_entries["Отмечаемся"] = get_poll_attachment(vk_stub, group_id, poll_name, poll_matrix)
             if(check_afternoon(time_now)):
                 print("полдень")
-                msg_entries[f"Настолка дня: {random.choice(recomendations)}"] = ""
+                if(len(recomendations) > 0):
+                    msg_entries[f"Настолка дня: {random.choice(recomendations)}"] = ""
             if(check_evening(time_now)):
                 print("вечер")
                 # Send a photo if photo_root is not working directory
