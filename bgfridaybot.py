@@ -163,7 +163,7 @@ def get_photo_path(photo_root):
         A random photo path from the given photo root directory.
     """
     photo_list = os.listdir(photo_root)
-    photo_path = f"{photo_root}/{random.choice(photo_list)}"
+    photo_path = f"{photo_root}{random.choice(photo_list)}"
     print(photo_path) 
     return photo_path
 def get_photo_attachment(vk, photo_path):
