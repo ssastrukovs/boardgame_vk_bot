@@ -7,6 +7,18 @@ Board games' themed.
 
 ## Usage
 
+### QUICK START!!! (Windows only, for now)
+Install [python 3.11](https://www.python.org/downloads/release/python-3119/)
+
+Create a file "envargs.txt" and put necessary arguments in it (see [Arguments](#arguments) section)
+
+Run with Powershell (or [run it in Explorer](launchbot.ps1)) :
+```
+./launchbot.ps1
+```
+All dependencies shall download automatically.     
+If you did not fill envargs.txt or supplied invalid args, it'll prompt you.
+
 ### Prerequisites 
 #### Windows 10 x64:
 ```
