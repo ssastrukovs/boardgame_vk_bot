@@ -166,14 +166,8 @@ def get_photo_path(photo_root):
     photo_path = f"{photo_root}{random.choice(photo_list)}"
     print(photo_path) 
     return photo_path
-def get_photo_attachment(vk, photo_path):
-    """
-    Uploads a photo to a hidden album in VK and returns an attachment string.
 
-    :param vk: VK API object
-    :param photo_path: path to the photo to upload
-    :return: attachment string for the uploaded photo
-    """
+def upload_photo(vk, photo_path):
     
     hidden_album = vk.photos.getMessagesUploadServer()
     print(hidden_album["upload_url"])
@@ -199,6 +193,22 @@ def get_photo_attachment(vk, photo_path):
     print()
     print(response["hash"])
     
+    return response
+def get_photo_attachment(vk, photo_path):
+    """
+    Uploads a photo to a hidden album in VK and returns an attachment string.
+
+    :param vk: VK API object
+    :param photo_path: path to the photo to upload
+    :return: attachment string for the uploaded photo
+    """
+    photo = ""
+    while(photo == ""):
+        response = upload_photo(vk, photo_path)
+        photo = response["photo"]
+        if(photo != ""):
+            break
+
     photo_upload = vk.photos.saveMessagesPhoto(server = response["server"], photo=response["photo"], hash=response["hash"])[0]
     print(photo_upload)
     owner_id = photo_upload["owner_id"]
