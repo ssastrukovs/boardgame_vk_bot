@@ -166,14 +166,8 @@ def get_photo_path(photo_root):
     photo_path = f"{photo_root}{random.choice(photo_list)}"
     print(photo_path) 
     return photo_path
-def get_photo_attachment(vk, photo_path):
-    """
-    Uploads a photo to a hidden album in VK and returns an attachment string.
 
-    :param vk: VK API object
-    :param photo_path: path to the photo to upload
-    :return: attachment string for the uploaded photo
-    """
+def upload_photo(vk, photo_path):
     
     hidden_album = vk.photos.getMessagesUploadServer()
     print(hidden_album["upload_url"])
@@ -199,6 +193,22 @@ def get_photo_attachment(vk, photo_path):
     print()
     print(response["hash"])
     
+    return response
+def get_photo_attachment(vk, photo_path):
+    """
+    Uploads a photo to a hidden album in VK and returns an attachment string.
+
+    :param vk: VK API object
+    :param photo_path: path to the photo to upload
+    :return: attachment string for the uploaded photo
+    """
+    photo = ""
+    while(photo == ""):
+        response = upload_photo(vk, photo_path)
+        photo = response["photo"]
+        if(photo != ""):
+            break
+
     photo_upload = vk.photos.saveMessagesPhoto(server = response["server"], photo=response["photo"], hash=response["hash"])[0]
     print(photo_upload)
     owner_id = photo_upload["owner_id"]
@@ -275,6 +285,8 @@ def main():
     
     time_now = time.localtime()
     time_prev = time_now
+    
+    first_time = True
    
     # Каждую секунду проверять, не настало ли время, и утром в 10:00 отправлять сообщение из списка
     while(True):
@@ -286,11 +298,13 @@ def main():
                 print("tick/60, time: "+time.strftime("%a %b %d %H:%M:%S %Y", time_now))
             # Изначально пул сообщений пустой            
             msg_entries = {}
-            
+            if(first_time):
+                 msg_entries[f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"] = get_photo_attachment(vk, get_photo_path(photo_root))
+                 first_time = False
             # Проверить всякие условия
             if(check_morning(time_now)):
                 print("утро")
-                msg_entries[f"Доброе утро, {random.choice(hellos)}"] = ""
+                msg_entries[f"Доброе утро, {random.choice(hellos)}"] = get_photo_attachment(vk, get_photo_path(photo_root))
             if(check_friday_poll(time_now)):
                 if(key_stub != ""):
                     print("опрос")
@@ -306,7 +320,7 @@ def main():
                     msg_entries["Иллюстрация дня:"] = get_photo_attachment(vk, get_photo_path(photo_root))
             if(check_goodnight(time_now)):
                 print("ночи")
-                msg_entries[f"Спокойной ночи, {random.choice(hellos)}"] = ""
+                msg_entries[f"Спокойной ночи, {random.choice(hellos)}"] = get_photo_attachment(vk, get_photo_path(photo_root))
             # Послать сообщения, если они есть
             if (len(msg_entries) > 0):
                 for message in msg_entries:
