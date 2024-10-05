@@ -14,8 +14,8 @@ Pull requests are prefferable.
 Try to keep it simple and not overpollute it with comments.
 
 As for the **commit** policy, start a new branch with your feature, and keep to the simple generic rules when naming:
-1. Noun at the start of commit header, as in "this commit will ..."
-2. 50 symbols in commit header and 72 in commit message max
+1. Verb at the start of commit header, as in "this commit will ..."
+2. 50 symbols in commit header and 72 in commit message line max
 3. An empty new line that separates the header and message
 4. Name your branches in underscore case
 
