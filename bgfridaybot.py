@@ -202,6 +202,7 @@ def get_photo_attachment(vk, photo_path):
     :return: attachment string for the uploaded photo
     """
     photo = ""
+    response = json.loads("")
     while(photo == ""):
         response = upload_photo(vk, photo_path)
         photo = response["photo"]
@@ -254,6 +255,8 @@ def main():
     recomendations_ru = []
     
     # get databases
+    hellos = []
+    poll_name, poll_matrix = [], []
     if(args.hello_prompts != "."):
         hellos =             np.genfromtxt(args.hello_prompts, delimiter=",", dtype=str, encoding='utf-8')
     if(args.board_game_prompts != "."):
@@ -277,6 +280,7 @@ def main():
     print(f"photos length: {len(os.listdir(photo_root))}")
     
     # set recommendations language
+    recomendations = []
     if(args.language == "ru"):
         recomendations = recomendations_ru
     if(args.language == "en"):
