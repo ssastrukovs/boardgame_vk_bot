@@ -1,5 +1,4 @@
 import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 import time
 
@@ -174,11 +173,11 @@ def upload_photo(vk, photo_path):
     
     response_buffer = BytesIO()
     curl = pycurl.Curl()
-    curl.setopt(curl.SSL_VERIFYPEER, 0);
-    curl.setopt(curl.URL, hidden_album["upload_url"])
-    curl.setopt(curl.POST, 1)
-    curl.setopt(curl.HTTPPOST, [('photo', (curl.FORM_FILE, photo_path))])
-    curl.setopt(curl.WRITEFUNCTION, response_buffer.write)
+    curl.setopt(pycurl.SSL_VERIFYPEER, 0)
+    curl.setopt(pycurl.URL, hidden_album["upload_url"])
+    curl.setopt(pycurl.POST, 1)
+    curl.setopt(pycurl.HTTPPOST, [('photo', (pycurl.FORM_FILE, photo_path))])
+    curl.setopt(pycurl.WRITEFUNCTION, response_buffer.write)
     curl.perform()
     bbuf = response_buffer.getvalue()
     response = json.loads(bbuf.decode('utf-8'))
@@ -240,7 +239,7 @@ def get_poll_attachment(vk_stub, group, poll_name, poll_matrix):
     return attachment
 
 def main():
-    args = parse_args();
+    args = parse_args()
     print(args)
     
     key = args.key
@@ -299,8 +298,8 @@ def main():
             # Изначально пул сообщений пустой            
             msg_entries = {}
             if(first_time):
-                 msg_entries[f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"] = get_photo_attachment(vk, get_photo_path(photo_root))
-                 first_time = False
+                msg_entries[f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"] = get_photo_attachment(vk, get_photo_path(photo_root))
+                first_time = False
             # Проверить всякие условия
             if(check_morning(time_now)):
                 print("утро")
