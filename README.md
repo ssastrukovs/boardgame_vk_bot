@@ -8,7 +8,7 @@ Board games' themed.
 ## Usage
 
 ### QUICK START!!! (Windows only, for now)
-Install [python 3.11](https://www.python.org/downloads/release/python-3119/)
+Install [python](https://www.python.org/downloads/)
 
 Create a file "envargs.txt" and put necessary arguments in it (see [Arguments](#arguments) section)
 
@@ -20,11 +20,6 @@ All dependencies shall download automatically.
 If you did not fill envargs.txt or supplied invalid args, it'll prompt you.
 
 ### Prerequisites 
-#### Windows 10 x64:
-```
-pip install -r requirements_windows.txt
-```
-#### Other:
 ```
 pip install -r requirements.txt
 ```
@@ -61,15 +56,6 @@ Supply that key as -ks, and every Friday morning you'll have a board game query 
 ### Pipeline
 Bot wil run until it's interrupted or closed
 
-## Note!
-
-### PycURL
-You need python 3.4-3.11 for this to function, because of pycurl.    
-If you're having trouble installing pycurl on windows - go [here]( https://www.lfd.uci.edu/~gohlke/pythonlibs/#pycurl)
-to download a pre-built wheel.
-
-There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl_win64/pycurl-7.45.1-cp310-cp310-win_amd64.whl).
-
 ## Currently supported features
 - Sending prompts to a chat:
   - "Good morning, ..."
@@ -89,4 +75,4 @@ There is an included windows 10 x86-64 prebuilt wheel at [./pycurl_win64](pycurl
 - Various chat integrations
   - Answers to a keyword
   - Board game search engine?
-- Fix pycurl cross-platform behaviour (run in docker?)
+  - docker?

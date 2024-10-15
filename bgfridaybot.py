@@ -3,8 +3,7 @@ import random
 import time
 
 # POST to send a picture to vk API 
-import pycurl
-from io import BytesIO
+import requests
 import json
 
 # image file path getting
@@ -170,18 +169,10 @@ def upload_photo(vk, photo_path):
     
     hidden_album = vk.photos.getMessagesUploadServer()
     print(hidden_album["upload_url"])
+    print(f"photo_path = {photo_path}")
     
-    response_buffer = BytesIO()
-    curl = pycurl.Curl()
-    curl.setopt(pycurl.SSL_VERIFYPEER, 0)
-    curl.setopt(pycurl.URL, hidden_album["upload_url"])
-    curl.setopt(pycurl.POST, 1)
-    curl.setopt(pycurl.HTTPPOST, [('photo', (pycurl.FORM_FILE, photo_path))])
-    curl.setopt(pycurl.WRITEFUNCTION, response_buffer.write)
-    curl.perform()
-    bbuf = response_buffer.getvalue()
-    response = json.loads(bbuf.decode('utf-8'))
-    curl.close()
+    with open(photo_path, 'rb') as f:
+        response = json.loads(requests.post(url=hidden_album["upload_url"], files={'photo' : f}).content)
     
     print()
     print(response)
@@ -202,11 +193,12 @@ def get_photo_attachment(vk, photo_path):
     :return: attachment string for the uploaded photo
     """
     photo = ""
-    response = json.loads("")
-    while(photo == ""):
+    response = json.loads("{}")
+    while(not(len(photo))):
         response = upload_photo(vk, photo_path)
         photo = response["photo"]
-        if(photo != ""):
+        print(f"got photo ~~{photo}~~ len {len(photo)}")
+        if(len(photo)):
             break
 
     photo_upload = vk.photos.saveMessagesPhoto(server = response["server"], photo=response["photo"], hash=response["hash"])[0]
