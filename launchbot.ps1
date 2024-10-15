@@ -1,6 +1,6 @@
 # Установка пути к venv, файлу с требованиями и скрипту
 $venvPath = ".\venv"
-$requirementsFile = ".\requirements_windows.txt"
+$requirementsFile = ".\requirements.txt"
 $scriptToRun = ".\bgfridaybot.py"
 $argsFile = ".\envargs.txt"
 
@@ -10,7 +10,7 @@ if (-Not (Test-Path $venvPath)) {
     python -m venv $venvPath
 
     # Установка зависимостей
-    Write-Host "Setting up requirements_windows.txt..."
+    Write-Host "Setting up requirements.txt..."
     & "$venvPath\Scripts\pip.exe" install -r $requirementsFile
 }
 

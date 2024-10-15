@@ -1,11 +1,9 @@
 import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 import random
 import time
 
 # POST to send a picture to vk API 
-import pycurl
-from io import BytesIO
+import requests
 import json
 
 # image file path getting
@@ -171,18 +169,10 @@ def upload_photo(vk, photo_path):
     
     hidden_album = vk.photos.getMessagesUploadServer()
     print(hidden_album["upload_url"])
+    print(f"photo_path = {photo_path}")
     
-    response_buffer = BytesIO()
-    curl = pycurl.Curl()
-    curl.setopt(curl.SSL_VERIFYPEER, 0);
-    curl.setopt(curl.URL, hidden_album["upload_url"])
-    curl.setopt(curl.POST, 1)
-    curl.setopt(curl.HTTPPOST, [('photo', (curl.FORM_FILE, photo_path))])
-    curl.setopt(curl.WRITEFUNCTION, response_buffer.write)
-    curl.perform()
-    bbuf = response_buffer.getvalue()
-    response = json.loads(bbuf.decode('utf-8'))
-    curl.close()
+    with open(photo_path, 'rb') as f:
+        response = json.loads(requests.post(url=hidden_album["upload_url"], files={'photo' : f}).content)
     
     print()
     print(response)
@@ -203,10 +193,12 @@ def get_photo_attachment(vk, photo_path):
     :return: attachment string for the uploaded photo
     """
     photo = ""
-    while(photo == ""):
+    response = json.loads("{}")
+    while(not(len(photo))):
         response = upload_photo(vk, photo_path)
         photo = response["photo"]
-        if(photo != ""):
+        print(f"got photo ~~{photo}~~ len {len(photo)}")
+        if(len(photo)):
             break
 
     photo_upload = vk.photos.saveMessagesPhoto(server = response["server"], photo=response["photo"], hash=response["hash"])[0]
@@ -240,7 +232,7 @@ def get_poll_attachment(vk_stub, group, poll_name, poll_matrix):
     return attachment
 
 def main():
-    args = parse_args();
+    args = parse_args()
     print(args)
     
     key = args.key
@@ -255,6 +247,8 @@ def main():
     recomendations_ru = []
     
     # get databases
+    hellos = []
+    poll_name, poll_matrix = [], []
     if(args.hello_prompts != "."):
         hellos =             np.genfromtxt(args.hello_prompts, delimiter=",", dtype=str, encoding='utf-8')
     if(args.board_game_prompts != "."):
@@ -278,6 +272,7 @@ def main():
     print(f"photos length: {len(os.listdir(photo_root))}")
     
     # set recommendations language
+    recomendations = []
     if(args.language == "ru"):
         recomendations = recomendations_ru
     if(args.language == "en"):
@@ -299,8 +294,8 @@ def main():
             # Изначально пул сообщений пустой            
             msg_entries = {}
             if(first_time):
-                 msg_entries[f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"] = get_photo_attachment(vk, get_photo_path(photo_root))
-                 first_time = False
+                msg_entries[f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"] = get_photo_attachment(vk, get_photo_path(photo_root))
+                first_time = False
             # Проверить всякие условия
             if(check_morning(time_now)):
                 print("утро")
