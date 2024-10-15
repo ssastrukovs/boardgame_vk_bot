@@ -7,14 +7,21 @@ Board games' themed.
 
 ## Usage
 
-### QUICK START!!! (Windows only, for now)
+### QUICK START
 Install [python](https://www.python.org/downloads/)
 
 Create a file "envargs.txt" and put necessary arguments in it (see [Arguments](#arguments) section)
 
+#### Windows 
 Run with Powershell (or [run it in Explorer](launchbot.ps1)) :
 ```
 ./launchbot.ps1
+```
+#### Linux
+Allow for execution and run
+```
+chmod +x launchbot.sh
+./launchbot.sh
 ```
 All dependencies shall download automatically.     
 If you did not fill envargs.txt or supplied invalid args, it'll prompt you.
