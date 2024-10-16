@@ -19,6 +19,17 @@ As for the **commit** policy, start a new branch with your feature, and keep to 
 3. An empty new line that separates the header and message
 4. Name your branches in underscore case
 
+Also, there's a little CI script that does linting after submitting a PR.    
+Maybe run pylint like that, it does exactly that:
+```
+pylint $(git ls-files '*.py')
+```
+
+Python version 3.9 is in there, so beware of using new features, or contact me to change it,
+if it's a very unique new feature that NEEDS to be embedded in the repository.
+
+For formatting, just run [ruff](https://github.com/astral-sh/ruff) with standard settings over it, and go with the pylint script I've given earlier from there.
+
 ## Language
 
 Try to keep everything in English, where it's possible. Commit names must be **strictly** English

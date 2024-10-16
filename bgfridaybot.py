@@ -2,6 +2,7 @@
 Board game vk bot: send random board game prompts to vk group chat
 """
 
+from dataclasses import dataclass
 import random
 import time
 import json
@@ -267,7 +268,9 @@ def upload_photo(vk, photo_path):
 
     with open(photo_path, "rb") as f:
         response = json.loads(
-            requests.post(url=hidden_album["upload_url"], files={"photo": f}, timeout=60).content
+            requests.post(
+                url=hidden_album["upload_url"], files={"photo": f}, timeout=60
+            ).content
         )
 
     print()
@@ -338,6 +341,114 @@ def get_poll_attachment(vk_stub, group, poll_name, poll_matrix):
     return attachment
 
 
+@dataclass
+class PollDescriptor:
+    """
+    Class for VK poll descriptor,
+    bound by poll name, poll group id and poll
+    configuration matrix
+    """
+
+    def __init__(self, group_id=0, poll_name="", poll_matrix=np.ndarray([])):
+        self.group_id = group_id
+        self.name = poll_name
+        self.matrix = poll_matrix
+
+
+class VkMsgQueue:
+    """
+    Class for VK photos queue, bound by token, chat id and peer.
+    """
+
+    msg_entries = {}
+
+    def __init__(self, token="", chat_id=0, chat_peer=0):
+        """
+        Creates a new VK session with a given token
+        that sends msgs to a given chat id and peer
+        """
+        self.token = token
+        self.vk_session = vk_api.VkApi(token=self.token)
+        self.vk = self.vk_session.get_api()
+        self.chat_id = chat_id
+        self.chat_peer = chat_peer
+
+    def enqueue_msg(self, do_enqueue=True, msg=""):
+        """
+        Add a message to the queue.
+        If do_enqueue is False, the message will not be sent
+        """
+        if not do_enqueue:
+            return
+        print(f"sending msg: {msg}")
+        self.msg_entries[msg] = msg
+
+    def enqueue_photo(self, do_enqueue=True, msg="", photo_root="."):
+        """
+        Add a message to the queue.
+        If do_enqueue is False, the message will not be sent
+        """
+        if not do_enqueue or photo_root == ".":
+            return
+        print(f"sending photo: {msg}")
+        self.msg_entries[msg] = get_photo_attachment(
+            self.vk, get_photo_path(photo_root)
+        )
+
+    def enqueue_poll(
+        self, do_enqueue=True, msg="", poll: PollDescriptor = PollDescriptor()
+    ):
+        """
+        Add a poll to the queue.
+        If do_enqueue is False, the poll will not be sent
+        """
+        if (
+            not do_enqueue
+            or poll.group_id == 0
+            or poll.name == ""
+            or poll.matrix.size == 0
+        ):
+            return
+        print(f"sending poll: {msg}")
+        self.msg_entries[msg] = get_poll_attachment(
+            self.vk, poll.group_id, poll.name, poll.matrix
+        )
+
+    def clear_send_all(self):
+        """
+        Send all messages in the queue.
+        """
+        if self.token == "" or self.chat_id == 0 or self.chat_peer == 0:
+            return
+        for item in self.msg_entries.items():
+            msgid = random.randint(1, 1000000000)
+            message = item[0]
+            attachment = item[1]
+            if attachment == "":
+                self.vk.messages.send(
+                    chat_id=self.chat_id,
+                    peer_id=self.chat_peer,
+                    message=message,
+                    random_id=msgid,
+                )
+            else:
+                self.vk.messages.send(
+                    chat_id=self.chat_id,
+                    peer_id=self.chat_peer,
+                    message=message,
+                    attachment=attachment,
+                    random_id=msgid,
+                )
+
+        self.msg_entries = {}
+
+    def get_vk(self):
+        """
+        Return vk methods descriptor, stored in class
+        """
+        return self.vk
+
+
 def main():
     """
     Main procedure.
@@ -346,20 +457,14 @@ def main():
     args = parse_args()
     print(args)
 
-    key = args.key
-    chat_id = args.chat_id
-    group_id = args.group_id
-    chat_peer = args.chat_peer
     photo_root = args.photo_dir
-
-    key_stub = args.key_stub
 
     recomendations_en = []
     recomendations_ru = []
 
     # get databases
     hellos = []
-    poll_name, poll_matrix = [], []
+    poll_descr = PollDescriptor()
     if args.hello_prompts != ".":
         hellos = np.genfromtxt(
             args.hello_prompts, delimiter=",", dtype=str, encoding="utf-8"
@@ -377,16 +482,15 @@ def main():
             args.poll_database, delimiter=",", dtype=str, unpack=True, encoding="utf-8"
         )
         poll_matrix = poll_matrix.split()
+        poll_descr = PollDescriptor(args.group_id, poll_name, poll_matrix)
 
     # Login to group bot account for messages.send
-    vk_session = vk_api.VkApi(token=key)
-    vk = vk_session.get_api()
+    vk_queue_photos = VkMsgQueue(args.key, args.chat_id, args.chat_peer)
 
     # Login to a personal account for polls.create, etc.
     # To get that token - go to https://vkhost.github.io/
     # and specify "Wall" on a personal account in "Settings"
-    stub_session = vk_api.VkApi(token=key_stub)
-    vk_stub = stub_session.get_api()
+    vk_queue_polls = VkMsgQueue(args.key_stub, args.chat_id, args.chat_peer)
 
     print(f"hellos length: {len(hellos)}")
     print(f"recomendations length: {len(recomendations_en)}")
@@ -405,73 +509,52 @@ def main():
 
     first_time = True
 
-    # Каждую секунду проверять, не настало ли время, и утром в 10:00 отправлять сообщение из списка
+    # Every second send some kind of message
     while True:
         time_now = time.localtime()
 
         # Каждую секунду
-        if time_now.tm_sec != time_prev.tm_sec:
-            if time_now.tm_sec % 60 == 0:
-                print(
-                    "tick/60, time: " + time.strftime("%a %b %d %H:%M:%S %Y", time_now)
-                )
-            # Изначально пул сообщений пустой
-            msg_entries = {}
-            if first_time:
-                msg_entries[
-                    f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}"
-                ] = get_photo_attachment(vk, get_photo_path(photo_root))
-                first_time = False
-            # Проверить всякие условия
-            if check_morning(time_now):
-                print("утро")
-                msg_entries[f"Доброе утро, {random.choice(hellos)}"] = (
-                    get_photo_attachment(vk, get_photo_path(photo_root))
-                )
-            if check_friday_poll(time_now):
-                if key_stub != "":
-                    print("опрос")
-                    msg_entries["Отмечаемся"] = get_poll_attachment(
-                        vk_stub, group_id, poll_name, poll_matrix
-                    )
-            if check_afternoon(time_now):
-                print("полдень")
-                if len(recomendations) > 0:
-                    msg_entries[f"Настолка дня: {random.choice(recomendations)}"] = ""
-            if check_evening(time_now):
-                print("вечер")
-                # Send a photo if photo_root is not working directory
-                if photo_root != ".":
-                    msg_entries["Иллюстрация дня:"] = get_photo_attachment(
-                        vk, get_photo_path(photo_root)
-                    )
-            if check_goodnight(time_now):
-                print("ночи")
-                msg_entries[f"Спокойной ночи, {random.choice(hellos)}"] = (
-                    get_photo_attachment(vk, get_photo_path(photo_root))
-                )
-            # Послать сообщения, если они есть
-            for message in msg_entries:
-                msgid = random.randint(1, 1000000000)
-                attachment = msg_entries[message]
-                if attachment == "":
-                    vk.messages.send(
-                        chat_id=chat_id,
-                        peer_id=chat_peer,
-                        message=message,
-                        random_id=msgid,
-                    )
-                else:
-                    vk.messages.send(
-                        chat_id=chat_id,
-                        peer_id=chat_peer,
-                        message=message,
-                        attachment=attachment,
-                        random_id=msgid,
-                    )
+        if time_now.tm_sec == time_prev.tm_sec:
+            continue
+
+        if time_now.tm_sec % 60 == 0:
+            print("tick/60, time: " + time.strftime("%a %b %d %H:%M:%S %Y", time_now))
+
+        # First time start indication
+        vk_queue_photos.enqueue_photo(
+            first_time,
+            f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}",
+            photo_root,
+        )
+        first_time = False
+
+        # Actual Sendings
+        vk_queue_photos.enqueue_photo(
+            check_morning(time_now), f"Доброе утро, {random.choice(hellos)}", photo_root
+        )
+        vk_queue_polls.enqueue_poll(
+            check_friday_poll(time_now), "Отмечаемся", poll_descr
+        )
+        if len(recomendations) > 0:
+            vk_queue_photos.enqueue_msg(
+                check_afternoon(time_now),
+                f"Настолка дня: {random.choice(recomendations)}",
+            )
+        vk_queue_photos.enqueue_photo(
+            check_evening(time_now), "Иллюстрация дня:", photo_root
+        )
+        vk_queue_photos.enqueue_photo(
+            check_goodnight(time_now),
+            f"Спокойной ночи, {random.choice(hellos)}",
+            photo_root,
+        )
+
+        # Send if we have any
+        vk_queue_photos.clear_send_all()
+        vk_queue_polls.clear_send_all()
 
         time_prev = time_now
-        # Поспать 0.2 секунды
+        # maybe add asyncs
         time.sleep(0.2)
 
 
