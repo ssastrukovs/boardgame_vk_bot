@@ -314,6 +314,75 @@ def get_photo_attachment(vk, photo_path):
     return attachment
 
 
+def upload_photo_url(vk, url):
+    """
+    Uploads a photo to a hidden album in VK from a url
+    and returns an upload server response.
+
+    :param vk: VK API object
+    :param url: url of the photo to upload
+    :return: upload server response
+    """
+    hidden_album = vk.photos.getMessagesUploadServer()
+    print(hidden_album["upload_url"])
+    print(url)
+
+    file = requests.get(url, stream=True, timeout=5)
+    print(file.headers["Content-Type"])
+    print(file.status_code)
+
+    ext = file.headers["Content-Type"].split("/")[1]
+    response = json.loads(
+        requests.post(
+            url=hidden_album["upload_url"],
+            files={
+                "photo": (f"photo.{ext}", file.content, file.headers["Content-Type"])
+            },
+            timeout=60,
+        ).content
+    )
+
+    print()
+    print(response)
+    print()
+    print(response["server"])
+    print()
+    print(response["photo"])
+    print()
+    print(response["hash"])
+
+    return response
+
+
+def get_photo_attachment_url(vk, url):
+    """
+    Uploads a photo to a hidden album in VK from a url and returns an attachment url.
+
+    :param vk: VK API object
+    :param url: url of the photo to upload
+    :return: attachment url for the uploaded photo
+    """
+    photo = ""
+    response = json.loads("{}")
+    while len(photo) == 0:
+        response = upload_photo_url(vk, url)
+        photo = response["photo"]
+        print(f"got photo ~~{photo}~~ len {len(photo)}")
+        if len(photo):
+            break
+
+    photo_upload = vk.photos.saveMessagesPhoto(
+        server=response["server"], photo=response["photo"], hash=response["hash"]
+    )[0]
+    print(photo_upload)
+    owner_id = photo_upload["owner_id"]
+    photo_id = photo_upload["id"]
+
+    attachment = f"photo{owner_id}_{photo_id}"
+
+    return attachment
+
+
 def get_poll_attachment(vk_stub, group, poll_name, poll_matrix):
     """
     Creates a poll using the VK API stub (authenticated by your own account auth token,
@@ -394,6 +463,17 @@ class VkMsgQueue:
         self.msg_entries[msg] = get_photo_attachment(
             self.vk, get_photo_path(photo_root)
         )
+
+    def enqueue_photo_url(self, do_enqueue=True, msg="", url=""):
+        """
+        Add a message to the queue.
+        If do_enqueue is False, the message will not be sent
+        """
+        if not do_enqueue or url == "":
+            return
+        print(f"sending photo: {msg}")
+        self.msg_entries[msg] = get_photo_attachment_url(self.vk, url)
+        return
 
     def enqueue_poll(
         self, do_enqueue=True, msg="", poll: PollDescriptor = PollDescriptor()
