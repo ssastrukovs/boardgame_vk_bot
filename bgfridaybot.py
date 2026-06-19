@@ -2,6 +2,7 @@
 Board game vk bot: send random board game prompts to vk group chat
 """
 
+import sys
 from dataclasses import dataclass
 import random
 import time
@@ -11,7 +12,6 @@ import argparse
 
 # csv parsing
 import numpy as np
-import sys
 import vk_api
 
 # POST to send a picture to vk API
