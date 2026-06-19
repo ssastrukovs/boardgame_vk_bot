@@ -11,6 +11,7 @@ import argparse
 
 # csv parsing
 import numpy as np
+import sys
 import vk_api
 
 # POST to send a picture to vk API
@@ -523,7 +524,7 @@ def main():
         # First time start indication
         vk_queue_photos.enqueue_photo(
             first_time,
-            f"Запуск бота, время {time_now.tm_hour}:{time_now.tm_min}",
+            f"Здарова, кожаные мешки. Запуск, время {time_now.tm_hour}:{time_now.tm_min}",
             photo_root,
         )
         first_time = False
@@ -551,9 +552,10 @@ def main():
 
         # Send if we have any
         vk_queue_photos.clear_send_all()
-        vk_queue_polls.clear_send_all()
+        # vk_queue_polls.clear_send_all()
 
         time_prev = time_now
+        sys.stdout.flush()
         # maybe add asyncs
         time.sleep(0.2)
 
