@@ -1,0 +1,14 @@
+services:
+  boardgame_vk_bot:
+    user: "${UID}:${GID}"
+    build:
+      context: .
+      args:
+        ARGS_FILE: ./envargs.txt
+        PHOTO_FOLDER: /home/ssa/YandexDisk/catbot
+    volumes:
+      # path to photo folder, doubled
+      - /home/ssa/YandexDisk/catbot:/home/ssa/YandexDisk/catbot
+    environment:
+      TZ: Europe/Samara
+    restart: unless-stopped
