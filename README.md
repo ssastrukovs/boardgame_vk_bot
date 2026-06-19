@@ -18,6 +18,9 @@ Run with Powershell (or [run it in Explorer](launchbot.ps1)) :
 ./launchbot.ps1
 ```
 #### Linux
+
+WARNING!!! Must have docker and docker-compose preinstalled.
+
 Allow for execution and run
 ```
 chmod +x launchbot.sh
@@ -30,7 +33,11 @@ If you did not fill envargs.txt or supplied invalid args, it'll prompt you.
 ```
 pip install -r requirements.txt
 ```
+Or use included docker-compose settings and Dockerfile.
 ### Startup
+
+envargs.txt - default args file path.
+
 Mandatory arguments:
 ```
 python bgfridaybot.py -k <API key> -gid <group id, as in URL> -cid <chat id, as in URL> -cpeer <chat peer, get it somehow>
@@ -82,4 +89,3 @@ Bot wil run until it's interrupted or closed
 - Various chat integrations
   - Answers to a keyword
   - Board game search engine?
-  - docker?
