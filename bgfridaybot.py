@@ -1,3 +1,7 @@
+# pylint: disable=broad-exception-caught
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-positional-arguments
+
 """
 Board game vk bot: send random board game prompts to vk group chat
 """
@@ -215,7 +219,9 @@ def check_friday_poll(time_struct):
     bool
         Whether the time struct is on a Friday and at 8:10am: true or false.
     """
-    return check_wd(time_struct, 4) and check_time(time_struct, 8, 10)
+    is_friday = time_struct.tm_wday == 4
+    is_friday &= check_time(time_struct, 8, 10)
+    return is_friday
 
 
 def check_goodnight(time_struct):
@@ -361,8 +367,6 @@ class VkMsgQueue:
     Class for VK photos queue, bound by token, chat id and peer.
     """
 
-    msg_entries = {}
-
     def __init__(self, token="", chat_id=0, chat_peer=0):
         """
         Creates a new VK session with a given token
@@ -373,6 +377,7 @@ class VkMsgQueue:
         self.vk = self.vk_session.get_api()
         self.chat_id = chat_id
         self.chat_peer = chat_peer
+        self.msg_entries = {}
 
     def enqueue_msg(self, do_enqueue=True, msg=""):
         """
@@ -403,17 +408,18 @@ class VkMsgQueue:
         Add a poll to the queue.
         If do_enqueue is False, the poll will not be sent
         """
-        if (
-            not do_enqueue
-            or poll.group_id == 0
-            or poll.name == ""
-            or poll.matrix.size == 0
-        ):
+        if not do_enqueue or poll.group_id == 0 or poll.name == "":
             return
         print(f"sending poll: {msg}")
         self.msg_entries[msg] = get_poll_attachment(
             self.vk, poll.group_id, poll.name, poll.matrix
         )
+
+    def clear(self):
+        """
+        Clear queue.
+        """
+        self.msg_entries = {}
 
     def clear_send_all(self):
         """
@@ -426,6 +432,7 @@ class VkMsgQueue:
             message = item[0]
             attachment = item[1]
             if attachment == "":
+                print("Sending message " + message)
                 self.vk.messages.send(
                     chat_id=self.chat_id,
                     peer_id=self.chat_peer,
@@ -433,6 +440,8 @@ class VkMsgQueue:
                     random_id=msgid,
                 )
             else:
+                print("Sending message " + message)
+                print("Sending attachment " + attachment)
                 self.vk.messages.send(
                     chat_id=self.chat_id,
                     peer_id=self.chat_peer,
@@ -448,6 +457,85 @@ class VkMsgQueue:
         Return vk methods descriptor, stored in class
         """
         return self.vk
+
+
+def main_cycle(
+    vk_queue_photos,
+    vk_queue_polls,
+    time_now,
+    time_prev,
+    first_time,
+    photo_root,
+    args,
+    recomendations,
+    poll_descr,
+    hellos,
+):
+    """
+    Do main work
+
+    Returns
+    -------
+    bool: skip wait or not
+
+    """
+
+    # Каждую секунду
+    if time_now.tm_sec == time_prev.tm_sec:
+        return False
+
+    if time_now.tm_sec % 60 == 0:
+        print("tick/60, time: " + time.strftime("%a %b %d %H:%M:%S %Y", time_now))
+
+    # First time start indication
+    vk_queue_photos.enqueue_photo(
+        first_time,
+        f"Здарова, кожаные мешки. Запуск, время {time_now.tm_hour}:{time_now.tm_min}",
+        photo_root,
+    )
+    # Actual Sendings
+    vk_queue_photos.enqueue_photo(
+        check_morning(time_now), f"Доброе утро, {random.choice(hellos)}", photo_root
+    )
+    if args.poll_database != ".":
+        vk_queue_polls.enqueue_poll(
+            check_friday_poll(time_now), "Отмечаемся", poll_descr
+        )
+    if len(recomendations) > 0:
+        vk_queue_photos.enqueue_msg(
+            check_afternoon(time_now),
+            f"Настолка дня: {random.choice(recomendations)}",
+        )
+    vk_queue_photos.enqueue_photo(
+        check_evening(time_now), "Иллюстрация дня:", photo_root
+    )
+    vk_queue_photos.enqueue_photo(
+        check_goodnight(time_now),
+        f"Спокойной ночи, {random.choice(hellos)}",
+        photo_root,
+    )
+
+    try:
+        # Send if we have any
+        vk_queue_photos.clear_send_all()
+        vk_queue_polls.clear_send_all()
+    except Exception:
+        vk_queue_photos.clear()
+        vk_queue_polls.clear()
+        try:
+            vk_queue_photos.enqueue_msg(msg="Бот помер, проверьте токены и пикчи пж")
+            vk_queue_photos.clear_send_all()
+        except Exception:
+            print("Something ABSOLUTELY wrong")
+        else:
+            print("Sleeping for 5 seconds...")
+            time.sleep(5)
+            return False
+        print("Sleeping for 5 seconds...")
+        time.sleep(5)
+        return False
+
+    return True
 
 
 def main():
@@ -513,51 +601,32 @@ def main():
     # Every second send some kind of message
     while True:
         time_now = time.localtime()
-
-        # Каждую секунду
-        if time_now.tm_sec == time_prev.tm_sec:
-            continue
-
-        if time_now.tm_sec % 60 == 0:
-            print("tick/60, time: " + time.strftime("%a %b %d %H:%M:%S %Y", time_now))
-
-        # First time start indication
-        vk_queue_photos.enqueue_photo(
-            first_time,
-            f"Здарова, кожаные мешки. Запуск, время {time_now.tm_hour}:{time_now.tm_min}",
-            photo_root,
-        )
-        first_time = False
-
-        # Actual Sendings
-        vk_queue_photos.enqueue_photo(
-            check_morning(time_now), f"Доброе утро, {random.choice(hellos)}", photo_root
-        )
-        vk_queue_polls.enqueue_poll(
-            check_friday_poll(time_now), "Отмечаемся", poll_descr
-        )
-        if len(recomendations) > 0:
-            vk_queue_photos.enqueue_msg(
-                check_afternoon(time_now),
-                f"Настолка дня: {random.choice(recomendations)}",
+        noskip = True
+        try:
+            noskip = main_cycle(
+                vk_queue_photos,
+                vk_queue_polls,
+                time_now,
+                time_prev,
+                first_time,
+                photo_root,
+                args,
+                recomendations,
+                poll_descr,
+                hellos,
             )
-        vk_queue_photos.enqueue_photo(
-            check_evening(time_now), "Иллюстрация дня:", photo_root
-        )
-        vk_queue_photos.enqueue_photo(
-            check_goodnight(time_now),
-            f"Спокойной ночи, {random.choice(hellos)}",
-            photo_root,
-        )
-
-        # Send if we have any
-        vk_queue_photos.clear_send_all()
-        # vk_queue_polls.clear_send_all()
-
-        time_prev = time_now
-        sys.stdout.flush()
-        # maybe add asyncs
-        time.sleep(0.2)
+        except Exception:
+            print("Something in main cycle failed, sleeping...")
+            time_prev = time_now
+            sys.stdout.flush()
+            time.sleep(5)
+        else:
+            if not noskip:
+                continue
+            first_time = False
+            time_prev = time_now
+            sys.stdout.flush()
+            time.sleep(0.2)
 
 
 if __name__ == "__main__":
