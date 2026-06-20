@@ -367,8 +367,6 @@ class VkMsgQueue:
     Class for VK photos queue, bound by token, chat id and peer.
     """
 
-    msg_entries = {}
-
     def __init__(self, token="", chat_id=0, chat_peer=0):
         """
         Creates a new VK session with a given token
@@ -379,6 +377,7 @@ class VkMsgQueue:
         self.vk = self.vk_session.get_api()
         self.chat_id = chat_id
         self.chat_peer = chat_peer
+        self.msg_entries = {}
 
     def enqueue_msg(self, do_enqueue=True, msg=""):
         """
