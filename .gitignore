@@ -1,4 +1,11 @@
+# Ignore dotfiles and directories unless explicitly shared.
+.*
+!.gitignore
+!.dockerignore
+!.github/
+!.github/**
+
 photos/
 venv/
-.vscode/
 envargs.txt
+__pycache__/
